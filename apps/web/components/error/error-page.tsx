@@ -3,6 +3,7 @@
 import { useLayoutEffect } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { Button } from "@calcom/ui/components/button";
 
@@ -89,7 +90,7 @@ export const ErrorPage: React.FC<Props> = (props) => {
             </pre>
           </div>
 
-          <Button href="mailto:support@cal.com">Contact Support</Button>
+          <Button href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>Contact Support</Button>
           <Button color="secondary" className="ml-2" onClick={handleReset}>
             Try again
           </Button>
