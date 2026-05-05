@@ -155,7 +155,7 @@ export function Authorize() {
           <div className="relative -ml-6 w-24 h-24">
             <div className="flex absolute inset-0 justify-center items-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img src="/cal-com-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
+                <img src="/dd-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
               </div>
             </div>
           </div>

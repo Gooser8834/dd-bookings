@@ -37,24 +37,20 @@ async function handler(req: NextRequest) {
 
   try {
     const fontResults = await Promise.allSettled([
-      fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
     ]);
 
     const fonts: SatoriOptions["fonts"] = [];
 
-    if (fontResults[1].status === "fulfilled") {
-      fonts.push({ name: "inter", data: fontResults[1].value, weight: 400 });
-    }
-
-    if (fontResults[2].status === "fulfilled") {
-      fonts.push({ name: "inter", data: fontResults[2].value, weight: 500 });
-    }
-
     if (fontResults[0].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[0].value, weight: 400 });
       fonts.push({ name: "cal", data: fontResults[0].value, weight: 400 });
-      fonts.push({ name: "cal", data: fontResults[0].value, weight: 600 });
+    }
+
+    if (fontResults[1].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[1].value, weight: 500 });
+      fonts.push({ name: "cal", data: fontResults[1].value, weight: 600 });
     }
 
     const ogConfig = {
