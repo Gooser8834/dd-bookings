@@ -529,26 +529,14 @@
       "outputs": ["lint-results"]
     },
     "post-install": {
-      "dependsOn": ["^post-install"],
-      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**", "dist/**"],
+      "dependsOn": [],
+      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
       "env": ["PRISMA_GENERATE_DATAPROXY"]
     },
     "@calcom/prisma#post-install": {
       "cache": false,
       "outputs": ["dist/**", "build/**"]
-    },
-    "@calcom/platform-enums#post-install": {
-      "dependsOn": ["@calcom/platform-types#post-install", "@calcom/platform-constants#post-install"],
-      "outputs": ["dist/**"]
-    },
-    "@calcom/platform-utils#post-install": {
-      "dependsOn": ["@calcom/platform-types#post-install", "@calcom/platform-constants#post-install"],
-      "outputs": ["dist/**"]
-    },
-    "@calcom/platform-libraries#post-install": {
-      "dependsOn": ["@calcom/platform-types#post-install", "@calcom/platform-constants#post-install", "@calcom/platform-utils#post-install", "@calcom/platform-enums#post-install"],
-      "outputs": ["dist/**"]
     },
     "start": {
       "outputs": ["dist/**", "build/**"]
