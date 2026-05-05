@@ -3,8 +3,7 @@ import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
+import { Host_Grotesk, Barlow_Condensed, IBM_Plex_Mono } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import Script from "next/script";
 import type React from "react";
@@ -14,13 +13,25 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
-const calFont = localFont({
-  src: "../fonts/CalSans-SemiBold.woff2",
+const sansFont = Host_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  preload: true,
+  display: "swap",
+});
+const calFont = Barlow_Condensed({
+  subsets: ["latin"],
   variable: "--font-cal",
   preload: true,
-  display: "block",
-  weight: "600",
+  display: "swap",
+  weight: ["500", "600", "700"],
+});
+const monoFont = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  preload: false,
+  display: "swap",
+  weight: ["400", "500"],
 });
 
 export const viewport = {
@@ -29,16 +40,7 @@ export const viewport = {
   maximumScale: 1.0,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: [
-    {
-      media: "(prefers-color-scheme: light)",
-      color: "#f9fafb",
-    },
-    {
-      media: "(prefers-color-scheme: dark)",
-      color: "#1C1C1C",
-    },
-  ],
+  themeColor: "#000000",
 };
 
 export const metadata = {
@@ -65,11 +67,9 @@ export const metadata = {
   },
   manifest: "/site.webmanifest",
   other: {
-    "application-TileColor": "#ff0000",
+    "application-TileColor": "#000000",
   },
   twitter: {
-    site: "@calcom",
-    creator: "@calcom",
     card: "summary_large_image",
   },
   robots: {
@@ -106,18 +106,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html
-      className="notranslate"
+      className={`notranslate dark ${sansFont.variable} ${calFont.variable} ${monoFont.variable}`}
       translate="no"
       lang={locale}
       dir={direction}
-      style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      style={embedColorScheme ? { colorScheme: embedColorScheme as string } : { colorScheme: "dark" }}
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${sansFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-mono: ${monoFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
         {process.env.NODE_ENV === "development" && (

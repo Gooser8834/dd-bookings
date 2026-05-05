@@ -48,9 +48,10 @@ class MyDocument extends Document<Props> {
 
     return (
       <Html
+        className="dark"
         lang={newLocale}
         dir={newDir}
-        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : { colorScheme: "dark" }}>
         <Head>
           <script
             id="newLocale"
@@ -70,9 +71,8 @@ class MyDocument extends Document<Props> {
           <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
-          <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
-          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
+          <meta name="msapplication-TileColor" content="#000000" />
+          <meta name="theme-color" content="#000000" />
           {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
             // eslint-disable-next-line @next/next/no-sync-scripts
             <script

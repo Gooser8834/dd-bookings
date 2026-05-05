@@ -367,22 +367,23 @@
 }
 
 .dark {
+  /* DD palette: #000 page bg, #fff text, #7a7a7a muted, white-alpha for layers */
   /* Background Standard */
-  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
-  --cal-bg: hsla(0, 0%, 6%, 1);
-  --cal-bg-subtle: hsla(0, 0%, 15%, 1);
-  --cal-bg-muted: hsla(0, 0%, 9%, 1);
-  --cal-bg-inverted: hsla(0, 0%, 98%, 1);
+  --cal-bg-emphasis: rgba(255, 255, 255, 0.12);
+  --cal-bg: #000000;
+  --cal-bg-subtle: rgba(255, 255, 255, 0.04);
+  --cal-bg-muted: rgba(255, 255, 255, 0.025);
+  --cal-bg-inverted: #ffffff;
 
   /* Background Primary */
-  --cal-bg-primary: hsla(0, 0%, 96%, 1);
-  --cal-bg-primary-emphasis: hsla(0, 0%, 64%, 1);
-  --cal-bg-primary-muted: hsla(0, 0%, 15%, 1);
+  --cal-bg-primary: #ffffff;
+  --cal-bg-primary-emphasis: rgba(255, 255, 255, 0.9);
+  --cal-bg-primary-muted: rgba(255, 255, 255, 0.08);
 
   /* Background Brand */
-  --cal-bg-brand: hsla(0, 0%, 98%, 1);
-  --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1);
-  --cal-bg-brand-muted: hsla(0, 0%, 96%, 1);
+  --cal-bg-brand: #ffffff;
+  --cal-bg-brand-emphasis: rgba(255, 255, 255, 0.9);
+  --cal-bg-brand-muted: rgba(255, 255, 255, 0.08);
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1);
@@ -419,10 +420,10 @@
   --cal-bg-launch-dark: hsla(242, 53%, 10%, 1);
 
   /* Border Standard */
-  --cal-border: hsla(0, 0%, 30%, 1);
-  --cal-border-muted: hsla(0, 0%, 9%, 1);
-  --cal-border-subtle: hsla(0, 0%, 15%, 1);
-  --cal-border-emphasis: hsla(0, 0%, 45%, 1);
+  --cal-border: rgba(255, 255, 255, 0.14);
+  --cal-border-muted: rgba(255, 255, 255, 0.05);
+  --cal-border-subtle: rgba(255, 255, 255, 0.08);
+  --cal-border-emphasis: rgba(255, 255, 255, 0.25);
   --cal-border-semantic-error: hsla(0, 63%, 24%, 1);
   --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1);
   --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1);
@@ -430,11 +431,11 @@
   --cal-border-booker: var(--cal-border-subtle);
 
   /* Content/Text Standard */
-  --cal-text-emphasis: hsla(0, 0%, 98%, 1);
-  --cal-text: hsla(0, 0%, 83%, 1);
-  --cal-text-subtle: hsla(0, 0%, 64%, 1);
-  --cal-text-muted: hsla(0, 0%, 64%, 1);
-  --cal-text-inverted: hsla(0, 0%, 0%, 1);
+  --cal-text-emphasis: #ffffff;
+  --cal-text: #ffffff;
+  --cal-text-subtle: #7a7a7a;
+  --cal-text-muted: #7a7a7a;
+  --cal-text-inverted: #000000;
 
   /* Content/Text Semantic */
   --cal-text-semantic-info: hsla(229, 90%, 74%, 1);
@@ -453,9 +454,9 @@
   --cal-text-error: hsla(3, 66%, 93%, 1);
 
   /* Brand */
-  --cal-brand: hsla(0, 0%, 100%, 1);
-  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
-  --cal-brand-text: hsla(0, 0%, 0%, 1);
+  --cal-brand: #ffffff;
+  --cal-brand-emphasis: rgba(255, 255, 255, 0.9);
+  --cal-brand-text: #000000;
 
   /* Fill Colors */
   --fill-emphasis: var(--cal-text-emphasis);

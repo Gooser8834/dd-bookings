@@ -1,4 +1,3 @@
-Contact: security@cal.com
+Contact: hello@designerdigital.ca
 Preferred-Languages: en
-Canonical: https://cal.com/.well-known/security.txt
-Policy: https://github.com/calcom/cal.diy/security/policy
+Canonical: https://book.designer.digital/.well-known/security.txt

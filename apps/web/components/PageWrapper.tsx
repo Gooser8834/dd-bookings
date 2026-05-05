@@ -10,8 +10,7 @@
 "use client";
 
 import { DefaultSeo } from "next-seo";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
+import { Host_Grotesk, Barlow_Condensed } from "next/font/google";
 import Head from "next/head";
 import Script from "next/script";
 
@@ -32,13 +31,13 @@ export interface CalPageWrapper {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
-const calFont = localFont({
-  src: "../fonts/CalSans-SemiBold.woff2",
+const sansFont = Host_Grotesk({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
+const calFont = Barlow_Condensed({
+  subsets: ["latin"],
   variable: "--font-cal",
   preload: true,
   display: "swap",
-  weight: "600",
+  weight: ["500", "600", "700"],
 });
 
 function PageWrapper(props: AppProps) {
@@ -89,7 +88,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-sans: ${interFont.style.fontFamily};
+          --font-sans: ${sansFont.style.fontFamily};
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
