@@ -3436,6 +3436,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     turbo: "npm:2.5.5"
     turndown: "npm:7.2.0"
+    twilio: "npm:^5.3.5"
     typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
@@ -21786,7 +21787,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.19":
+"dayjs@npm:^1.11.19, dayjs@npm:^1.11.9":
   version: 1.11.20
   resolution: "dayjs@npm:1.11.20"
   checksum: 10/5347533f21a55b8bb1b1ef559be9b805514c3a8fb7e68b75fb7e73808131c59e70909c073aa44ce8a0d159195cd110cdd4081cf87ab96cb06fee3edacae791c6
@@ -36896,6 +36897,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"scmp@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "scmp@npm:2.1.0"
+  checksum: 10/1a21c91d98891e61b411bf3c494482c8b47a8adece11356569c28328d983b98089eec19ff77005b74ec536ddac6ea2b7679a72b80e6a04774fc18a4a1f37f939
+  languageName: node
+  linkType: hard
+
 "screenfull@npm:^5.1.0":
   version: 5.2.0
   resolution: "screenfull@npm:5.2.0"
@@ -39949,6 +39957,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"twilio@npm:^5.3.5":
+  version: 5.13.1
+  resolution: "twilio@npm:5.13.1"
+  dependencies:
+    axios: "npm:^1.13.5"
+    dayjs: "npm:^1.11.9"
+    https-proxy-agent: "npm:^5.0.0"
+    jsonwebtoken: "npm:^9.0.3"
+    qs: "npm:^6.14.1"
+    scmp: "npm:^2.1.0"
+    xmlbuilder: "npm:^13.0.2"
+  checksum: 10/42d10ade2832572d4de2b0c6557ec6a9aac6ac169e4a731afbdf4dfc94d1ea476b70bfcc4c62185c11db09bb8f950c864d527fd610906a20864bd53bd91259b9
+  languageName: node
+  linkType: hard
+
 "twoslash-protocol@npm:0.3.7":
   version: 0.3.7
   resolution: "twoslash-protocol@npm:0.3.7"
@@ -41979,6 +42002,13 @@ __metadata:
   version: 15.1.1
   resolution: "xmlbuilder@npm:15.1.1"
   checksum: 10/e6f4bab2504afdd5f80491bda948894d2146756532521dbe7db33ae0931cd3000e3b4da19b3f5b3f51bedbd9ee06582144d28136d68bd1df96579ecf4d4404a2
+  languageName: node
+  linkType: hard
+
+"xmlbuilder@npm:^13.0.2":
+  version: 13.0.2
+  resolution: "xmlbuilder@npm:13.0.2"
+  checksum: 10/84671f47fbc28e56dc2fca9b29a2a62e3c2e28f5fcaa986b11c9a7df7385fc921e923cd1c3da83ae0d58b255bc2369feffdcd20600b4125391c79be02eedca15
   languageName: node
   linkType: hard
 

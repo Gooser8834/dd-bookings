@@ -8,7 +8,7 @@
     "build": "yarn clean && tsc --build --force tsconfig.json",
     "clean": "npx rimraf dist",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
-    "post-install": "echo 'skipped \u2014 only needed for apps/api/v2 (not deployed here)'"
+    "post-install": "echo 'skipped — only needed for apps/api/v2 (not deployed here)'"
   },
   "dependencies": {
     "@calcom/platform-constants": "workspace:*",
