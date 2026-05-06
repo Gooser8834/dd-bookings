@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const TZ = "America/Edmonton";
 const ORGANIZER_NAME = "Kory";
 const REBOOK_URL = "https://book.designer.digital/meet/discovery-call";
+const BOOKING_BASE_URL = "https://book.designer.digital/booking";
 
 type CalAttendee = {
   email: string;
@@ -29,7 +30,24 @@ type CalPayload = {
   attendees?: CalAttendee[];
   rescheduleStartTime?: string;
   rescheduleEndTime?: string;
+  location?: string;
+  videoCallData?: { url?: string; type?: string };
+  additionalInformation?: { hangoutLink?: string };
 };
+
+function getMeetLink(payload: CalPayload): string | null {
+  const candidates = [
+    payload.videoCallData?.url,
+    payload.additionalInformation?.hangoutLink,
+    payload.location,
+  ];
+  for (const c of candidates) {
+    if (c && typeof c === "string" && /^https?:\/\//i.test(c)) {
+      return c;
+    }
+  }
+  return null;
+}
 
 type CalWebhook = {
   triggerEvent: "BOOKING_CREATED" | "BOOKING_CANCELLED" | "BOOKING_RESCHEDULED" | string;
@@ -179,6 +197,7 @@ async function scheduleAllForBooking(payload: CalPayload, isReschedule: boolean)
   const attendeeName = attendee?.name ?? "there";
   const attendeePhone = attendee?.phoneNumber;
   const organizerPhone = process.env.ORGANIZER_PHONE_NUMBER;
+  const meetLink = getMeetLink(payload);
 
   const sids: string[] = [];
 
@@ -204,35 +223,44 @@ async function scheduleAllForBooking(payload: CalPayload, isReschedule: boolean)
     if (sid) sids.push(sid);
   }
 
+  const manageUrl = `${BOOKING_BASE_URL}/${payload.uid}`;
+
+  // Attendee instant confirmation (skip for reschedule — has its own message in caller)
+  if (attendeePhone && !isReschedule) {
+    const confirmBody = meetLink
+      ? `Thanks ${attendeeName}. Your call with ${ORGANIZER_NAME} is confirmed for ${dateStr} at ${timeStr} MT. Join: ${meetLink}. Manage: ${manageUrl}`
+      : `Thanks ${attendeeName}. Your call with ${ORGANIZER_NAME} at Designer Digital is confirmed for ${dateStr} at ${timeStr} MT. Manage: ${manageUrl}`;
+    const sid = await sendNow(attendeePhone, confirmBody);
+    if (sid) sids.push(sid);
+  }
+
   // Attendee scheduled reminders
   if (attendeePhone) {
-    // 24h before
+    // 24h before — include manage URL so they can cancel/reschedule with one tap
     const at24h = new Date(start.getTime() - 24 * 60 * 60 * 1000);
     const sid24h = await scheduleAt(
       attendeePhone,
-      `Reminder: your Discovery Call with ${ORGANIZER_NAME} at Designer Digital is tomorrow at ${timeStr} MT. Link in your calendar invite.`,
+      `Reminder: your call with ${ORGANIZER_NAME} tomorrow at ${timeStr} MT. Need to change? ${manageUrl}`,
       at24h
     );
     if (sid24h) sids.push(sid24h);
 
-    // Morning of (9 AM MT)
+    // Morning of (9 AM MT) — include link if available
     const morning = morningOfMT(start);
     if (morning.getTime() < start.getTime()) {
-      const sidMorning = await scheduleAt(
-        attendeePhone,
-        `Quick reminder, ${attendeeName}. Your call with ${ORGANIZER_NAME} at Designer Digital is today at ${timeStr} MT.`,
-        morning
-      );
+      const morningBody = meetLink
+        ? `Quick reminder, ${attendeeName}. Your call with ${ORGANIZER_NAME} is today at ${timeStr} MT. Join: ${meetLink}`
+        : `Quick reminder, ${attendeeName}. Your call with ${ORGANIZER_NAME} at Designer Digital is today at ${timeStr} MT. Link in your calendar invite.`;
+      const sidMorning = await scheduleAt(attendeePhone, morningBody, morning);
       if (sidMorning) sids.push(sidMorning);
     }
 
-    // 15 min before
+    // 15 min before — link prominent
     const at15m = new Date(start.getTime() - 15 * 60 * 1000);
-    const sid15m = await scheduleAt(
-      attendeePhone,
-      `Your call with ${ORGANIZER_NAME} starts in 15 minutes. Link in your calendar invite.`,
-      at15m
-    );
+    const fifteenBody = meetLink
+      ? `Your call with ${ORGANIZER_NAME} starts in 15 minutes. Join: ${meetLink}`
+      : `Your call with ${ORGANIZER_NAME} starts in 15 minutes. Link in your calendar invite.`;
+    const sid15m = await scheduleAt(attendeePhone, fifteenBody, at15m);
     if (sid15m) sids.push(sid15m);
   }
 
@@ -313,10 +341,11 @@ export async function POST(req: Request) {
         );
       }
       if (attendeePhone) {
-        await sendNow(
-          attendeePhone,
-          `Your Discovery Call moved to ${dateStr} at ${timeStr}. Updated invite is in your email.`
-        );
+        const meetLink = getMeetLink(payload);
+        const body = meetLink
+          ? `Your call moved to ${dateStr} at ${timeStr} MT. New link: ${meetLink} (also in your updated email).`
+          : `Your call moved to ${dateStr} at ${timeStr} MT. Updated invite is in your email.`;
+        await sendNow(attendeePhone, body);
       }
       return NextResponse.json({
         ok: true,
