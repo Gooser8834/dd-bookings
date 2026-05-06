@@ -1,4 +1,94 @@
-# Cal.diy Development Guide for AI Agents
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## This is the Designer Digital fork
+
+This repo is a fork of `calcom/cal.diy`, deployed as Designer Digital's self-hosted booking system at `https://book.designer.digital`. The "Cal.diy Engineering Guide" further down is upstream cal.diy's reference for code work. The section below is what you actually need to know about this specific deployment and fork.
+
+## Designer Digital fork — operational context
+
+### Deployment
+
+- **Vercel project**: `dd-bookings` (id `prj_uAa4GM9LovUZfCQNzbSFWEnfemH3`, team `team_aEfzYL3Gg3FiR0lovz2o98HU`). Auto-deploys on push to `main`.
+- **Database**: Neon Postgres project `dd-bookings`, US-East. `DATABASE_URL` is the pooled string (`-pooler` in hostname); `DATABASE_DIRECT_URL` is direct (used for migrations).
+- **Custom domain**: `book.designer.digital` (CNAME to Vercel). The apex `designerdigital.ca` is the *email* domain only — never serve web from `.ca`.
+- **Auth**: single admin user `contact@designerdigital.ca` (role `ADMIN`, `emailVerified` set manually — Resend isn't wired). Open signup is disabled via `NEXT_PUBLIC_DISABLE_SIGNUP=1`.
+- **Calendar**: Google Calendar + Meet via `GOOGLE_API_CREDENTIALS` env var. The OAuth client lives in Google Cloud project "Designer Digital Bookings" in Testing mode (unverified app). Refresh tokens may rotate after ~6 months — recovery is "Settings → Calendars → Reconnect" in cal.diy UI; no Cloud Console action needed.
+- **SMS**: Twilio with the custom webhook handler at `apps/web/app/api/webhooks/cal-booking/route.ts`. Cal.diy's `Webhook` table has one row registering this URL with HMAC secret matching `CAL_WEBHOOK_SECRET`.
+- **Email**: NOT configured. Resend env vars (`EMAIL_SERVER_*`) are placeholders. Calendar invitations come from Google directly (we patched `sendUpdates: "all"`).
+
+### Hard rules
+
+1. **Never trigger a Vercel deploy without explicit user approval.** Build minutes are paid. Detailed rule and reasoning in `~/.claude/projects/-Users-korygoossens-Desktop-Designer-Digital-Websites-dd-booking/memory/feedback_vercel_deploys.md`.
+2. **Always run `yarn workspace @calcom/web build` locally before pushing.** Catches issues (module-scope env reads, type errors) without burning Vercel build minutes.
+3. **Local build will fail on `/auth/login` page-data collection** with a JSON parse error — that's pre-existing cal.diy behavior caused by missing local env vars. Vercel builds clean. As long as your specific changed file compiles, the local build is "good enough."
+4. **Never change `CALENDSO_ENCRYPTION_KEY`.** It encrypts stored OAuth tokens; regenerating bricks every calendar connection.
+5. **Show drafted user-facing copy (SMS body, email text, button labels) BEFORE writing it into code.** Even when the user already said "deploy it."
+6. **Domain split is sacred**: `designer.digital` is web (NextAuth URL, OAuth redirects, webhook URLs); `designerdigital.ca` is email (Resend domain verification, From: addresses, admin email). Never mix them.
+
+### Custom changes vs upstream cal.diy
+
+These are the deliberate deviations from `calcom/cal.diy/main`. Reverse them only if the user explicitly asks.
+
+- **`apps/web/app/api/webhooks/cal-booking/route.ts`** (NEW): Twilio SMS webhook handler. Twilio client is **lazy-initialized inside the request handler** — initializing at module scope breaks `next build` page-data collection.
+- **`packages/app-store/googlecalendar/lib/CalendarService.ts`**: 3× `sendUpdates: "none"` → `"all"`. Without SMTP wired up, Google's emails are the only invite/reschedule/cancel email channel. Revert to `"none"` when/if Resend is enabled (otherwise leads get duplicate emails).
+- **`turbo.json`** + four `packages/platform/{constants,enums,types,utils}/package.json`: post-install scripts stubbed to `echo`. The four platform packages have a circular dependency that breaks fresh Vercel `yarn install`; these packages are only used by `apps/api/v2` which we don't deploy.
+- **`apps/web/package.json`**: build script is `next build` (upstream has `next build && yarn sentry:release` — no Sentry account). `twilio` is added as a dependency.
+- **`apps/web/vercel.json`**: removed empty `"functions": {}` (Vercel rejects schema).
+- **DD branding overlay**: `packages/config/theme/tokens.css` (`#000`/`#fff`/`#7a7a7a` palette, forced dark mode), `apps/web/app/layout.tsx` + `apps/web/pages/_document.tsx` + `apps/web/components/PageWrapper.tsx` + `apps/web/app/icons/page.tsx` (Host Grotesk + Barlow Condensed + IBM Plex Mono via `next/font/google`, replacing Inter + Cal Sans), `apps/web/public/dd-{icon,logo-word,logo-word-dark}.svg` + DD favicons. All upstream `cal-*.svg`, `cal.ttf`, `CalSans-SemiBold.woff2` deleted.
+- **`packages/lib/constants.ts`**: `LOGO`, `LOGO_DARK`, `LOGO_ICON` point at DD assets; `ROADMAP`, `DOCS_URL`, `JOIN_COMMUNITY`, `POWERED_BY_URL` re-pointed to `https://designer.digital`.
+- **Hardcoded `support@cal.com` mailto links**: replaced with `SUPPORT_MAIL_ADDRESS` constant in error page + 4 email templates.
+- **`packages/embeds/embed-core/src/styles.css`**: removed remote `https://cal.com/cal.ttf` font URL; uses CSS vars from layout instead.
+
+### Database operations (no psql installed)
+
+To query or update Neon, use ts-node with the Prisma client + adapter pattern. The webhook handler and admin promotion script use this same approach. Template:
+
+```bash
+cd packages/prisma
+DIRECT=$(grep '^DATABASE_DIRECT_URL=' ../../.env | cut -d= -f2- | tr -d '"')
+DATABASE_URL="$DIRECT" ../../node_modules/.bin/ts-node \
+  --transpile-only \
+  --compiler-options '{"module":"commonjs","esModuleInterop":true}' \
+  -e 'import { PrismaPg } from "@prisma/adapter-pg";
+      import { PrismaClient } from "./generated/prisma/client";
+      const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL ?? "" });
+      const prisma = new PrismaClient({ adapter });
+      (async () => {
+        // your query here
+        await prisma.$disconnect();
+      })();'
+```
+
+The PrismaPg adapter is required — cal.diy uses Prisma's "client" engine which won't initialize without it. A fixed reusable script is at `packages/prisma/scripts/promote-admin.ts`.
+
+### Vercel env var operations (via API)
+
+The Vercel CLI is authenticated; the token lives at `~/Library/Application Support/com.vercel.cli/auth.json`.
+
+```bash
+VTOKEN=$(python3 -c "import json; print(json.load(open('/Users/korygoossens/Library/Application Support/com.vercel.cli/auth.json'))['token'])")
+
+# List all env vars (sensitive values appear as null without ?decrypt=true)
+curl -sS "https://api.vercel.com/v10/projects/prj_uAa4GM9LovUZfCQNzbSFWEnfemH3/env?teamId=team_aEfzYL3Gg3FiR0lovz2o98HU&decrypt=true" \
+  -H "Authorization: Bearer $VTOKEN"
+
+# Upsert a single env var
+curl -sS -X POST "https://api.vercel.com/v10/projects/prj_uAa4GM9LovUZfCQNzbSFWEnfemH3/env?teamId=team_aEfzYL3Gg3FiR0lovz2o98HU&upsert=true" \
+  -H "Authorization: Bearer $VTOKEN" -H "Content-Type: application/json" \
+  -d '{"key":"NAME","value":"value","type":"plain","target":["production","preview","development"]}'
+```
+
+Sensitive env vars require `"type":"sensitive"` and `target` must NOT include `"development"` (Vercel rejects). Local `.env` and Vercel can drift — the local file is for diagnostics; production reads from Vercel.
+
+### Persistent memory
+
+Memory files for this project live at `~/.claude/projects/-Users-korygoossens-Desktop-Designer-Digital-Websites-dd-booking/memory/`. Read `MEMORY.md` first; it indexes user profile, feedback rules, and project context that persist across Claude sessions.
+
+---
+
+# Cal.diy Engineering Guide (upstream)
 
 You are a senior Cal.diy engineer working in a Yarn/Turbo monorepo. You prioritize type safety, security, and small, reviewable diffs.
 

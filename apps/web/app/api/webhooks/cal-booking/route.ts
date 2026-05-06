@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import twilio from "twilio";
 
 import prisma from "@calcom/prisma";
@@ -175,17 +175,33 @@ async function getStoredScheduledSids(bookingUid: string): Promise<string[]> {
   return Array.isArray(sids) ? sids : [];
 }
 
-async function storeScheduledSids(bookingUid: string, sids: string[]) {
-  const booking = await prisma.booking.findUnique({
-    where: { uid: bookingUid },
-    select: { metadata: true },
-  });
-  const meta = (booking?.metadata as Record<string, unknown> | null) ?? {};
-  await prisma.booking.update({
-    where: { uid: bookingUid },
-    data: {
-      metadata: { ...meta, scheduledSmsIds: sids } as never,
-    },
+/**
+ * Atomically write our scheduledSmsIds to booking.metadata using jsonb_set so
+ * we touch only our own path. Cal.diy's RegularBookingService writes
+ * `videoCallUrl` to metadata AFTER our webhook returns, using a stale
+ * in-memory reference of metadata — so a naive read-modify-write here gets
+ * clobbered. By queueing this write with `after()` we let cal.diy's update
+ * land first; our jsonb_set then merges in our path without overwriting
+ * `videoCallUrl` or anything else cal.diy added.
+ */
+function scheduleStoreSids(bookingUid: string, sids: string[]) {
+  after(async () => {
+    try {
+      // Wait a few seconds for cal.diy's post-webhook metadata update to land.
+      await new Promise((r) => setTimeout(r, 3000));
+      await prisma.$executeRaw`
+        UPDATE "Booking"
+        SET metadata = jsonb_set(
+          COALESCE(metadata, '{}'::jsonb),
+          '{scheduledSmsIds}',
+          ${JSON.stringify(sids)}::jsonb,
+          true
+        )
+        WHERE uid = ${bookingUid}
+      `;
+    } catch (err) {
+      console.error("[cal-booking] scheduleStoreSids failed:", (err as Error).message);
+    }
   });
 }
 
@@ -303,14 +319,14 @@ export async function POST(req: Request) {
   try {
     if (triggerEvent === "BOOKING_CREATED") {
       const sids = await scheduleAllForBooking(payload, false);
-      await storeScheduledSids(payload.uid, sids);
+      scheduleStoreSids(payload.uid, sids);
       return NextResponse.json({ ok: true, action: "created", scheduled: sids.length });
     }
 
     if (triggerEvent === "BOOKING_CANCELLED") {
       const oldSids = await getStoredScheduledSids(payload.uid);
       await Promise.all(oldSids.map(cancelScheduled));
-      await storeScheduledSids(payload.uid, []);
+      scheduleStoreSids(payload.uid, []);
 
       if (organizerPhone) {
         await sendNow(
@@ -332,7 +348,7 @@ export async function POST(req: Request) {
       await Promise.all(oldSids.map(cancelScheduled));
 
       const newSids = await scheduleAllForBooking(payload, true);
-      await storeScheduledSids(payload.uid, newSids);
+      scheduleStoreSids(payload.uid, newSids);
 
       if (organizerPhone) {
         await sendNow(
