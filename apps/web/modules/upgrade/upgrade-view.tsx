@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -47,7 +48,7 @@ export default function UpgradePage() {
             headline={t("you_are_all_set")}
             description={t("you_are_all_set_description")}
             Icon="circle-check"
-            buttonRaw={<Button href="mailto:support@cal.com">{t("contact_support")}</Button>}
+            buttonRaw={<Button href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>{t("contact_support")}</Button>}
           />
         )}
       </div>

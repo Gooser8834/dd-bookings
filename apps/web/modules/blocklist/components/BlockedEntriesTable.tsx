@@ -168,7 +168,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
                     StartIcon="book"
                     color="secondary"
                     onClick={() =>
-                      window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")
+                      window.open("https://designer.digital", "_blank", "noopener,noreferrer")
                     }>
                     {t("docs")}
                   </Button>

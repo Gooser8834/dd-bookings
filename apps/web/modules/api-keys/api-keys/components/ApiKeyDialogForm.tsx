@@ -163,7 +163,7 @@ export default function ApiKeyDialogForm({
                 <Link
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://cal.com/integrate"
+                  href="https://designer.digital"
                   className="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle_platform")}
                 </Link>

@@ -223,7 +223,7 @@ const ChooseEmbedTypesDialogContent = ({
             data-testid={embed.type}
             onClick={() => {
               if (embed.type === "headless") {
-                window.open("https://cal.com/help/routing/headless-routing", "_blank");
+                window.open("https://designer.digital", "_blank");
               } else {
                 gotoState({
                   embedType: embed.type as EmbedType,
@@ -686,7 +686,7 @@ const EmailEmbedPreview = ({
             }}>
             <span>{t("powered_by")}</span>{" "}
             <b style={{ color: "black" }}>
-              <span> Cal.diy</span>
+              <span> {APP_NAME}</span>
             </b>
           </div>
         </div>
